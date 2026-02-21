@@ -88,3 +88,26 @@ img {
 .MathJax_ref {
   fill: #00bc8c!important;
 }
+
+
+:root {
+  --secondary: #0d6efd;
+  --primary: #0d6efd;
+}
+
+a {
+  color: #0d6efd;
+}
+
+a:hover {
+  color: #0a58ca;
+}
+
+.btn-primary {
+  background-color: #0d6efd;
+  border-color: #0d6efd;
+}
+
+.MathJax_ref {
+  fill: #0d6efd !important;
+}
