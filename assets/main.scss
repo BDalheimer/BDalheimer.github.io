@@ -2,6 +2,10 @@
 # Only the main Sass file needs front matter (the dashes are enough)
 ---
 
+$primary: #0d6efd;
+$link-color: #0d6efd;
+$body-bg: #ffffff;
+$body-color: #212529;
 $baseurl: "{{ site.url }}{{ site.baseurl }}";
 
 // @import "variables";
@@ -12,7 +16,6 @@ $baseurl: "{{ site.url }}{{ site.baseurl }}";
 @import "bootstrap";
 @import "SHB_css";
 
-body {
-  background-color: #ffffff !important;
-  color: #212529 !important;
-}
+
+
+
