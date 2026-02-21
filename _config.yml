@@ -2,8 +2,8 @@
 title: Bernhard Dalheimer
 email: bdalheim@purdue.edu  
 description: Academic webpage of Bernhard Dalheimer
-baseurl: ""
-url: ""
+baseurl: "/website"
+url: "https://BDalheimer.github.io"
 
 # Google analytics ID: Uncomment and your own, if you like
 # google_analytics: XX
