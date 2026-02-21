@@ -1,17 +1,19 @@
-- name: Dr. Richard Feynman
-  photo: headshot.jpg
-  info: Richard C. Tolman Professor, California Institute of Technology
-  email: richard@university.edu
-  github: https://github.com/
+- name: Bernhard Dalheimer
+  photo: bernhard-dalheimer.jpg
+  info: Assistant Professor of International Trade and Macroeconomics, Department of Agricultural Economics, Purdue University
+  email: bdalheim@purdue.edu
+  github: https://github.com/BDalheimer
   researchgate: https://www.researchgate.net/
-  scholar: https://scholar.google.com/citations?user=B7vSqZsAAAAJ
-  cv: cv/cv.pdf
+  scholar: https://scholar.google.de/citations?user=sBxpsF8AAAAJ&hl=de
+  linkedin: https://www.linkedin.com/in/bernhard-dalheimer-3171318a/
+  cv: cv/CVonline.pdf
   # Change the items in "education" you have (up to 6)
   education:
     [
-      "(1942) Ph.D. Physics, Princeton University",
-      "(1939) B.S. Physics, Massachusetts Institute of Technology",
+      "(2020) Ph.D. Economics, University of Göttingen",
+      "(2016) M.A. Development Economics, University of Göttingen",
+      "(2013) B.Sc. Economics and Social Sciences, Free University of Bozen-Bolzano",
     ]
 
   educationshort:
-    ["(1942) Ph.D. Physics, Princeton", "(1939) B.S. Physics, MIT"]
+    ["(2020) Ph.D. Economics, Göttingen", "(2016) M.A. Development Economics, Göttingen", "(2013) B.Sc. Economics and Social Sciences, Bozen-Bolzano"]

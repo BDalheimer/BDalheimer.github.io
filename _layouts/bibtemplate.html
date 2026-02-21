@@ -38,8 +38,23 @@ pre{
 {% endfor %}
 {% endif %}
 
+{% assign slidetest = false %}
+{% if entry.slides %}
+{% assign bibslides = "/slides/" | append: entry.slides %}
+{% for slides in site.static_files %}
+  {% if slides.path contains bibslides %}
+   {% assign slidetest = true %}
+  {% endif %}
+{% endfor %}
+{% endif %}
+
+
 {% if bibtest %}
-<a href="{{ site.url }}{{ site.baseurl }}/papers/{{ entry.file }}" target="_blank"><button class="btn btn-success btm-sm">PDF</button></a>
+<a href="{{ site.url }}{{ site.baseurl }}/papers/{{ entry.file }}" target="_blank"><button class="btn btn-primary btm-sm">PDF</button></a>
+{% endif %}
+
+{% if slidetest %}
+<a href="{{ site.url }}{{ site.baseurl }}/slides/{{ entry.slides }}" target="_blank"><button class="btn btn-primary btm-sm">Slides</button></a>
 {% endif %}
 
 {% if entry.doi %}
@@ -51,11 +66,11 @@ pre{
 {% endif %}
 
 {% if entry.type == 'unpublished' or entry.type == 'article' or  entry.type == 'thesis' or entry.type == 'inproceedings' or entry.type == 'report' %}
-<button class="btn btn-danger btm-sm"  onclick="toggleBibtex{{entry.key}}()">BIB</button>
+<button class="btn btn-primary btm-sm"  onclick="toggleBibtex{{entry.key}}()">BIB</button>
 {% endif %}
 
 {% if entry.abstract %}
-<button class="btn btn-warning btm-sm"  onclick="toggleAbstract{{entry.key}}()">ABSTRACT</button>
+<button class="btn btn-primary btm-sm"  onclick="toggleAbstract{{entry.key}}()">ABSTRACT</button>
 {% endif %}
 
 {% if entry.abstract %}

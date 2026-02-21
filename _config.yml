@@ -1,7 +1,7 @@
 # Site settings
-title: Richard Feynman
-email: richard@university.edu
-description: Academic webpage of Dr. Richard Feynman
+title: Bernhard Dalheimer
+email: bdalheim@purdue.edu  
+description: Academic webpage of Bernhard Dalheimer
 baseurl: ""
 url: ""
 
@@ -12,18 +12,19 @@ url: ""
 
 # Footer info
 affiliation: >
-  Richard Feynman<br/>
-  Professor of Physics<br/>
-  California Institute of Technology
+  Bernhard Dalheimer<br/>
+  Assistant Professor International Trade and Macroeconomics<br/>
+  Purdue University
 
 location: >
-  California Institute of Technology<br/>
-  1200 E California Blvd<br/>
-  Pasadena, CA 91125
+  Department of Agricultural Economics<br/>
+  Purdue University<br/>
+  403 Mitch Daniels Blvd.<br/>
+  West-Lafayette, IN 47907, USA
 
 contact: >
-  <a href="mailto:richard@university.edu" target="_blank"><i class="fa fa-envelope fa-1x"></i> Contact Richard via email</a> <br/>
-  <a href="https://github.com/sbryngelson/academic-website-template"><i class="fa fa-github fa-1x"></i> Use this site as a template!</a>
+  <a href="mailto:bdalheim@purdue.edu" target="_blank"><i class="fa fa-envelope fa-1x"></i> Contact Bernhard via email</a> <br/>
+  <a href="https://github.com/BDalheimer"><i class="fa fa-github fa-1x"></i> Use this site as a template!</a>
 
 # Pages shown in navbar
 nav_pages:
