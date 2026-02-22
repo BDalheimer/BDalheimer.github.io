@@ -21,8 +21,8 @@ permalink: /talks/
 
 ## Confernce Presentations
 
-* 2006 AAEA Kansas City, Missouri
-* 2006 GTAP Annual Meeting, Kyoto, Japan
+* 2026 AAEA Kansas City, Missouri
+* 2026 GTAP Annual Meeting, Kyoto, Japan
 * 2025 EAAE (European Association of Agricultural Economists) Biannual Congress, Bonn, Germany
 * 2025 CAES Annual Meeting, Montreal, Canada
 * 2025 AAEA Annual Meeting, Denver, Colorado

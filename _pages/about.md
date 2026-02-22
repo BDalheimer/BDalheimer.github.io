@@ -22,7 +22,8 @@ permalink: /about/
   {% if member.scholar %} <a href="{{ member.scholar }}" target="_blank"><i class="ai ai-google-scholar-square ai-3x"></i></a> {% endif %}
   {% if member.github %} <a href="{{ member.github }}" target="_blank"><i class="fa fa-github-square fa-3x"></i></a> {% endif %}
   {% if member.linkedin %} <a href="{{ member.linkedin }}" target="_blank"><i class="fa fa-linkedin-square fa-3x"></i></a> {% endif %}
-
+  {% if member.youtube %} <a href="{{ member.youtube }}" target="_blank"><i class="fa fa-youtube-square fa-3x"></i></a> {% endif %}
+ 
   <ul style="overflow: hidden">
     {% for education in member.education %}
       <li>{{ education | replace: "-","&#8211;" }}</li>
