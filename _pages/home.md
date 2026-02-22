@@ -7,7 +7,7 @@ permalink: /
 
 ### Welcome!
 
-I an Assistant Professor of International Trade and Macroeconomics at the Department of Agricultural Economics at Purdue University. I currently focus on uncertainty in international trade and global agri-food value chains, agricultural market shocks, and socio-environmental trade-offs in agricultural production systems. My research often has policy focus and features data-science approaches.
+I an Assistant Professor of Macroeconomics and Trade at the Department of Agricultural Economics at Purdue University. I currently focus on uncertainty in international trade and global agri-food value chains, agricultural market shocks, and socio-environmental trade-offs in agricultural production systems. My research often has policy focus and features data-science approaches.
 
 
 ### About me
