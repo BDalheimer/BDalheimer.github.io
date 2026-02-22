@@ -9,6 +9,10 @@ permalink: /
 
 I an Assistant Professor of Macroeconomics and Trade at the Department of Agricultural Economics at Purdue University. I currently focus on uncertainty in international trade and global agri-food value chains, agricultural market shocks, and socio-environmental trade-offs in agricultural production systems. My research often has policy focus and features data-science approaches.
 
+You can find my full list of publications on [Google Scholar](https://scholar.google.de/citations?user=sBxpsF8AAAAJ&hl=de), 
+download my [CV]({{ site.url }}{{ site.baseurl }}/cv/CVonline.pdf), or visit my 
+[YouTube channel](https://www.youtube.com/channel/UCRgmIYjSsUOJIoXQwQUqpmQ) where I post AI-generated non-technical 
+summaries of my research papers.
 
 ### About me
 
