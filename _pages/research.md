@@ -73,7 +73,7 @@ Risks are inherent and increasingly recognized in global agricultural value chai
 
 <div class="jumbotron">
 <div class="col-md-12 col-sm-12">
-<h4>The Geopolitics of Food and Agriculture</h4>
+<h4>[The Geopolitics of Food and Agriculture](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=6351338)</h4>
 <h5>(with [Marc F. Bellemare](https://marcfbellemare.com/wordpress/) and Weston Loughmiller</h5>
 Food has long been a policy instrument in times of conflict and political crisis. As a necessity, food can be used to advance geopolitical goals, including projecting state power and ensuring national security. We review the literature at the intersection of agricultural economics and political science, examining how food policy can further geopolitical interests. We bridge the gap between distinct literatures in agricultural economics and political science by synthesizing extant research on how state power and national  security concerns shape global food policy and identify directions for future research. By linking fragmented analyses of contemporary events with historical and theoretical perspectives, we highlight how geopolitical uncertainty continues to influence food policy. Given recent geopolitical developments, agricultural economics must integrate geopolitical risk into its research agenda, which will help define the role of agricultural economists within the emerging field of geoeconomics.
 </div>
