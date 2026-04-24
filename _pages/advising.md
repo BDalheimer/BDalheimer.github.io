@@ -8,7 +8,7 @@ This page is for both prospective students thinking about working with me and cu
 
 ---
 
-### 1. Advising philosophy
+#### 1. Advising philosophy
 
 I think of advising as a collaborative process of turning ideas into research. If you come with your own question, I will help you refine it, anchor it in the literature, and develop it into a feasible research design. If you prefer structure, I can also involve you in ongoing projects where the question is already defined and the task is execution. Both paths are valid — what matters is that you are motivated and moving forward.
 
@@ -28,7 +28,7 @@ I am flexible on frequency. We can meet weekly if that is what you need, or less
 
 ---
 
-### 3. Co-authorship
+#### 3. Co-authorship
 
 I am happy to co-author with students, but it is not a given. I equally support solo-authored work, and I will not claim a byline unless I feel I have made a substantial contribution beyond advising and commenting on drafts. If the research develops into something strong enough for journal submission and there is a genuine case for joining forces, I am glad to do that.
 
@@ -36,7 +36,7 @@ That said, I do not publish at all costs. Quality and integrity matter more to m
 
 ---
 
-### 4. On artificial intelligence
+#### 4. On artificial intelligence
 
 AI tools can be useful in research, and I have no objection to you using them. But be transparent about it, and never lose sight of the fact that you are responsible for everything that carries your name. If your analysis turns out to be wrong — or reflects sloppy practice — that is your problem, not the tool's. Always understand what AI is doing on your behalf, and always verify the output.
 
@@ -44,7 +44,7 @@ AI tools can be useful in research, and I have no objection to you using them. B
 
 ---
 
-### 5. Letters of recommendation
+#### 5. Letters of recommendation
 
 I write many letters each year and am glad to support your applications. To make this manageable and give your letters the attention they deserve, please follow these guidelines:
 
