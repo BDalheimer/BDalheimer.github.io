@@ -642,6 +642,18 @@ img { max-width: 100%; display: block; }
 }
 
 /* ─────────────────────────────────────────────────────────────── */
+/* SOFTWARE                                                        */
+/* ─────────────────────────────────────────────────────────────── */
+.software-list { display: flex; flex-direction: column; gap: 40px; max-width: 760px; }
+.software-body { display: flex; gap: 36px; align-items: flex-start; }
+.software-text { flex: 1; }
+.software-name { font-family: 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif; font-size: 1.25rem; color: var(--text); margin-bottom: 10px; }
+.software-desc { font-size: .88rem; color: var(--muted); line-height: 1.7; margin-bottom: 8px; }
+.software-authors { font-size: .78rem; color: var(--faint); }
+.software-sticker { flex-shrink: 0; width: 130px; }
+.software-sticker img { width: 100%; border-radius: 12px; }
+
+/* ─────────────────────────────────────────────────────────────── */
 /* RESPONSIVE                                                      */
 /* ─────────────────────────────────────────────────────────────── */
 

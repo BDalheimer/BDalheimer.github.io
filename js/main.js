@@ -23,6 +23,7 @@
     { name: 'Teaching',     href: '/teaching.html' },
     { name: 'Advising',     href: '/advising.html' },
     { name: 'Media',        href: '/media.html' },
+    { name: 'Software',     href: '/software.html' },
   ];
 
   function isActive(href) {
