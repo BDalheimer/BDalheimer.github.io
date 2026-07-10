@@ -74,7 +74,7 @@ img { max-width: 100%; display: block; }
 }
 .nav-name {
   font-family: 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif;
-  font-size: 1rem;
+  font-size: 1.1rem;
   font-weight: 400;
   color: #fff;
   letter-spacing: .01em;
