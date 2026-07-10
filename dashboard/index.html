@@ -377,14 +377,21 @@ const EARNINGS = [
   { id: 'CES7000000003', label: 'Leisure & Hospitality', color: '#7c3aed' },
 ];
 
-const METRIC_DEFS = [
+const US_METRIC_DEFS = [
   { id: 'CUUR0000SA0',   label: 'All Items CPI'      },
   { id: 'CUUR0000SAF1',  label: 'All Food CPI'       },
   { id: 'CUUR0000SAF11', label: 'Food at Home'       },
   { id: 'CUUR0000SEFV',  label: 'Food Away'          },
   { id: 'WPU01',         label: 'Farm Products PPI'  },
   { id: 'WPUFD4111',     label: 'Consumer Foods PPI' },
-  { id: 'FFPI_FOOD',     label: 'FAO Global Food'    },
+];
+const GLOBAL_METRIC_DEFS = [
+  { id: 'FFPI_FOOD',    label: 'Food (Overall)' },
+  { id: 'FFPI_CEREALS', label: 'Cereals'        },
+  { id: 'FFPI_MEAT',    label: 'Meat'           },
+  { id: 'FFPI_DAIRY',   label: 'Dairy'          },
+  { id: 'FFPI_OILS',    label: 'Oils'           },
+  { id: 'FFPI_SUGAR',   label: 'Sugar'          },
 ];
 
 // ── State ─────────────────────────────────────────────────────────────────────
@@ -620,8 +627,9 @@ function renderEarnings() {
 
 // ── Metric summary cards ──────────────────────────────────────────────────────
 function renderCards() {
+  const defs = currentRegion === 'global' ? GLOBAL_METRIC_DEFS : US_METRIC_DEFS;
   const c = document.getElementById('metric-cards'); c.innerHTML = '';
-  METRIC_DEFS.forEach(m => {
+  defs.forEach(m => {
     const obs = rawData[m.id]; if (!obs || obs.length < 14) return;
     const latest = obs[obs.length - 1];
     const pct = latestYoY(m.id);
@@ -658,6 +666,9 @@ function setRegion(region) {
   document.getElementById('global-content').style.display = isGlobal ? ''     : 'none';
   document.getElementById('tab-btns').style.display      = isGlobal ? 'none' : '';
   activate('region-btns', isGlobal ? 1 : 0);
+
+  // Swap metric summary cards
+  if (Object.keys(rawData).length) renderCards();
 
   // Defer chart render until after the browser has done layout so Plotly
   // gets real container dimensions (not zero from display:none).
