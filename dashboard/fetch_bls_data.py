@@ -9,6 +9,8 @@ Usage:
 Writes data.json to the same directory as this script by default,
 and also to the website dashboard/ directory if it exists.
 """
+import csv
+import io
 import json
 import sys
 import urllib.request
@@ -43,6 +45,20 @@ SERIES = [
 
 # BLS public API: max 25 series per request, 10 years of history without a key
 BATCH_SIZE = 20
+
+# FAO Food Price Index — stable CSV published monthly (~1-month lag)
+FFPI_URL = (
+    "https://www.fao.org/media/docs/worldfoodsituationlibraries/"
+    "default-document-library/food_price_indices_data.csv"
+)
+FFPI_COLS = {
+    "Food Price Index": "FFPI_FOOD",
+    "Meat":             "FFPI_MEAT",
+    "Dairy":            "FFPI_DAIRY",
+    "Cereals":          "FFPI_CEREALS",
+    "Oils":             "FFPI_OILS",
+    "Sugar":            "FFPI_SUGAR",
+}
 
 
 def fetch_batch(series_ids, start_year, end_year):
@@ -85,6 +101,34 @@ def parse_series(bls_result):
     return out
 
 
+def fetch_ffpi():
+    """Download FAO Food Price Index CSV and return series dict."""
+    req = urllib.request.Request(
+        FFPI_URL,
+        headers={"User-Agent": "Mozilla/5.0 (food-price-dashboard; bernharddalheimer.com)"},
+    )
+    with urllib.request.urlopen(req, timeout=30) as resp:
+        text = resp.read().decode("utf-8-sig")  # handle optional BOM
+    # File has 2 title rows before the actual header row; skip them
+    body = "\n".join(text.splitlines()[2:])
+    reader = csv.DictReader(io.StringIO(body))
+    series = {sid: [] for sid in FFPI_COLS.values()}
+    for row in reader:
+        date_str = row.get("Date", "").strip()
+        if not date_str or len(date_str) < 7:
+            continue
+        date_out = date_str + "-15"  # YYYY-MM → YYYY-MM-15 (matches BLS format)
+        for col, sid in FFPI_COLS.items():
+            val_str = row.get(col, "").strip()
+            if not val_str:
+                continue
+            try:
+                series[sid].append({"date": date_out, "value": float(val_str)})
+            except ValueError:
+                continue
+    return series
+
+
 def main():
     out_path = Path(__file__).parent / "data.json"
     if "--out" in sys.argv:
@@ -102,6 +146,15 @@ def main():
         print(f"  Batch {i // BATCH_SIZE + 1}: {len(batch)} series")
         result = fetch_batch(batch, start_year, end_year)
         all_data.update(parse_series(result))
+
+    print("Fetching FAO Food Price Index…")
+    try:
+        ffpi = fetch_ffpi()
+        all_data.update(ffpi)
+        n = sum(len(v) for v in ffpi.values())
+        print(f"  Got {n} observations across {len(ffpi)} FFPI series")
+    except Exception as exc:
+        print(f"  Warning: FFPI fetch failed: {exc}", file=sys.stderr)
 
     output = {
         "fetched": now.strftime("%Y-%m-%dT%H:%M:%SZ"),

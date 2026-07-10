@@ -203,6 +203,7 @@
     <div class="btn-group" id="tab-btns">
       <button class="active" onclick="switchTab('cpi')">CPI</button>
       <button onclick="switchTab('ppi')">PPI</button>
+      <button onclick="switchTab('global')">Global</button>
       <button onclick="switchTab('numbers')">Numbers</button>
       <button onclick="switchTab('earnings')">Earnings</button>
     </div>
@@ -241,6 +242,20 @@
       <div class="chart-title">PPI — Food Value Chain: Farm to Consumer (Food-Specific)</div>
       <div class="chart-subtitle">All four series are food-specific BLS measures tracing price pressure from farm gate through intermediate demand to finished consumer foods</div>
       <div id="chart-ppi" style="height:420px"></div>
+    </div>
+  </div>
+
+  <!-- Global (FAO FFPI) -->
+  <div class="chart-section" id="global-section">
+    <div class="chart-card">
+      <div class="chart-title">FAO Food Price Index — Overall</div>
+      <div class="chart-subtitle">Base period: 2014–16 = 100 · Source: FAO, released monthly</div>
+      <div id="chart-ffpi-main" style="height:320px"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">FAO Food Price Index — Components</div>
+      <div class="chart-subtitle">Meat · Dairy · Cereals · Oils · Sugar</div>
+      <div id="chart-ffpi-components" style="height:360px"></div>
     </div>
   </div>
 
@@ -298,6 +313,17 @@
 
 <script>
 // ── Series definitions ────────────────────────────────────────────────────────
+const FFPI_OVERALL = [
+  { id: 'FFPI_FOOD', label: 'FAO Food Price Index', color: '#1d4ed8' },
+];
+const FFPI_COMPONENTS = [
+  { id: 'FFPI_MEAT',    label: 'Meat',    color: '#dc2626' },
+  { id: 'FFPI_DAIRY',   label: 'Dairy',   color: '#0891b2' },
+  { id: 'FFPI_CEREALS', label: 'Cereals', color: '#d97706' },
+  { id: 'FFPI_OILS',    label: 'Oils',    color: '#16a34a' },
+  { id: 'FFPI_SUGAR',   label: 'Sugar',   color: '#9333ea' },
+];
+
 const CPI_MAIN = [
   { id: 'CUUR0000SA0',   label: 'All Items',           color: '#6b7280', dash: 'dot' },
   { id: 'CUUR0000SAF1',  label: 'All Food',            color: '#1d4ed8' },
@@ -331,6 +357,7 @@ const METRIC_DEFS = [
   { id: 'CUUR0000SEFV',  label: 'Food Away'          },
   { id: 'WPU01',         label: 'Farm Products PPI'  },
   { id: 'WPUFD4111',     label: 'Consumer Foods PPI' },
+  { id: 'FFPI_FOOD',     label: 'FAO Global Food'    },
 ];
 
 // ── State ─────────────────────────────────────────────────────────────────────
@@ -381,13 +408,14 @@ async function loadAll() {
   updateTimestamp();
   renderCards();
   renderCharts();
+  renderGlobal();
   renderNumbers();
   renderEarnings();
 }
 
 // ── Re-render charts when theme toggles ──────────────────────────────────────
 new MutationObserver(() => {
-  if (Object.keys(rawData).length) { renderCharts(); renderEarnings(); }
+  if (Object.keys(rawData).length) { renderCharts(); renderGlobal(); renderEarnings(); }
 }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 
 // ── Transforms ────────────────────────────────────────────────────────────────
@@ -449,6 +477,22 @@ function renderCharts() {
 
   Plotly.react('chart-ppi', PPI_FOOD.map(s => mkTrace(s, display(s.id))),
     makePlotLayout({ margin: { t: 8, r: 16, b: 56, l: 58 }, yaxis: yax }), { responsive: true, displayModeBar: false });
+}
+
+// ── Global (FAO FFPI) ─────────────────────────────────────────────────────────
+function renderGlobal() {
+  const isYoY = currentMetric === 'yoy';
+  const yLabel = isYoY ? 'Year-over-Year Change (%)' : 'Index (2014–16 = 100)';
+  const yax = { title: { text: yLabel, font: { size: 11 } } };
+
+  Plotly.react('chart-ffpi-main',
+    FFPI_OVERALL.map(s => mkTrace(s, display(s.id))),
+    makePlotLayout({ yaxis: yax }), { responsive: true, displayModeBar: false });
+
+  Plotly.react('chart-ffpi-components',
+    FFPI_COMPONENTS.map(s => mkTrace(s, display(s.id))),
+    makePlotLayout({ margin: { t: 8, r: 16, b: 56, l: 58 }, yaxis: yax }),
+    { responsive: true, displayModeBar: false });
 }
 
 // ── Numbers table ─────────────────────────────────────────────────────────────
@@ -570,7 +614,7 @@ function switchTab(tab) {
   document.querySelectorAll('.chart-section').forEach(el =>
     el.classList.toggle('visible', el.id === `${tab}-section`)
   );
-  activate('tab-btns', ['cpi','ppi','numbers','earnings'].indexOf(tab));
+  activate('tab-btns', ['cpi','ppi','global','numbers','earnings'].indexOf(tab));
   const numbersActive = tab === 'numbers';
   document.querySelectorAll('#metric-btns button, #horizon-btns button').forEach(b => {
     b.disabled = numbersActive;
@@ -579,12 +623,12 @@ function switchTab(tab) {
 
 function setMetric(m) {
   currentMetric = m; activate('metric-btns', m === 'yoy' ? 0 : 1);
-  renderCharts(); renderEarnings();
+  renderCharts(); renderGlobal(); renderEarnings();
 }
 
 function setHorizon(months) {
   currentHorizon = months; activate('horizon-btns', [3,6,12,24,60,0].indexOf(months));
-  renderCharts(); renderEarnings();
+  renderCharts(); renderGlobal(); renderEarnings();
 }
 
 function activate(gid, idx) {
