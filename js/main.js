@@ -24,11 +24,13 @@
     { name: 'Advising',     href: '/advising.html' },
     { name: 'Media',        href: '/media.html' },
     { name: 'Software',     href: '/software.html' },
+    { name: 'Monitor',      href: '/dashboard/' },
   ];
 
   function isActive(href) {
     const path = window.location.pathname;
-    if (href === '/' ) return path === '/' || path === '/index.html';
+    if (href === '/') return path === '/' || path === '/index.html';
+    if (href.endsWith('/')) return path === href || path.startsWith(href);
     return path === href || path.endsWith(href);
   }
 

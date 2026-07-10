@@ -1,10 +1,12 @@
 name: Update Dashboard Data
 
 on:
-  # Run on the 16th of each month at 14:00 UTC (CPI typically releases 8:30 AM ET on ~10th-15th)
+  # Run daily at 14:30 UTC = 9:30 AM CDT (summer) / 8:30 AM CST (winter)
+  # BLS releases CPI/PPI at 8:30 AM ET, so data is available by then.
+  # The check_bls_release.py step gates the actual fetch to real release days.
   schedule:
-    - cron: '0 14 16 * *'
-  # Allow manual trigger — use this for next week's CPI release
+    - cron: '30 14 * * *'
+  # Manual trigger for ad-hoc updates or if the schedule misses a release
   workflow_dispatch:
 
 jobs:
@@ -12,17 +14,28 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+
     steps:
       - uses: actions/checkout@v4
 
+      - name: Check if today is a BLS release day
+        id: release_check
+        run: python3 dashboard/check_bls_release.py
+        continue-on-error: true
+        # Exit 0 → release day (step succeeds)
+        # Exit 1 → not a release day (step "fails", we skip the fetch)
+        # workflow_dispatch always proceeds regardless of this check
+
       - name: Fetch BLS data
+        if: steps.release_check.outcome == 'success' || github.event_name == 'workflow_dispatch'
         run: python3 dashboard/fetch_bls_data.py --out dashboard/data.json
 
       - name: Commit updated data
+        if: steps.release_check.outcome == 'success' || github.event_name == 'workflow_dispatch'
         run: |
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git config user.name "github-actions[bot]"
           git add dashboard/data.json
-          git diff --staged --quiet && echo "No changes" || \
+          git diff --staged --quiet && echo "No changes to commit" || \
             git commit -m "Update dashboard data $(date -u +%Y-%m-%d) [skip ci]"
           git push
