@@ -83,6 +83,19 @@
     .metric-value.flat { color: var(--text); }
     .metric-period { font-size: 0.68rem; color: var(--faint); margin-top: 0.3rem; }
 
+    /* Region toggle (US | Global) — top-level mode selector */
+    .region-toggle button {
+      font-size: 0.82rem; font-weight: 600; padding: 0.38rem 1rem;
+    }
+    .region-toggle button.active {
+      background: var(--accent); color: #fff;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.18);
+    }
+    .region-toggle button.active:hover { background: var(--accent-h); }
+    .controls-sep {
+      width: 1px; height: 20px; background: var(--border); flex-shrink: 0;
+    }
+
     /* Tab/controls bar */
     #controls {
       background: var(--surface); border-top: 1px solid var(--border);
@@ -200,10 +213,14 @@
   <div id="metric-cards"></div>
 
   <div id="controls">
+    <div class="btn-group region-toggle" id="region-btns">
+      <button class="active" onclick="setRegion('us')">US</button>
+      <button onclick="setRegion('global')">Global</button>
+    </div>
+    <div class="controls-sep" id="controls-sep"></div>
     <div class="btn-group" id="tab-btns">
       <button class="active" onclick="switchTab('cpi')">CPI</button>
       <button onclick="switchTab('ppi')">PPI</button>
-      <button onclick="switchTab('global')">Global</button>
       <button onclick="switchTab('numbers')">Numbers</button>
       <button onclick="switchTab('earnings')">Earnings</button>
     </div>
@@ -222,34 +239,79 @@
     </div>
   </div>
 
-  <!-- CPI -->
-  <div class="chart-section visible" id="cpi-section">
-    <div class="chart-card">
-      <div class="chart-title">CPI — Main Food Categories</div>
-      <div class="chart-subtitle">All Items · All Food · Food at Home · Food Away from Home</div>
-      <div id="chart-cpi-main" style="height:340px"></div>
-    </div>
-    <div class="chart-card">
-      <div class="chart-title">CPI — Food at Home Subcategories</div>
-      <div class="chart-subtitle">Six major expenditure classes under Food at Home</div>
-      <div id="chart-cpi-sub" style="height:340px"></div>
-    </div>
-  </div>
+  <!-- US content (CPI / PPI / Numbers / Earnings) -->
+  <div id="us-content">
 
-  <!-- PPI -->
-  <div class="chart-section" id="ppi-section">
-    <div class="chart-card">
-      <div class="chart-title">PPI — Food Value Chain: Farm to Consumer (Food-Specific)</div>
-      <div class="chart-subtitle">All four series are food-specific BLS measures tracing price pressure from farm gate through intermediate demand to finished consumer foods</div>
-      <div id="chart-ppi" style="height:420px"></div>
+    <!-- CPI -->
+    <div class="chart-section visible" id="cpi-section">
+      <div class="chart-card">
+        <div class="chart-title">CPI — Main Food Categories</div>
+        <div class="chart-subtitle">All Items · All Food · Food at Home · Food Away from Home</div>
+        <div id="chart-cpi-main" style="height:340px"></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">CPI — Food at Home Subcategories</div>
+        <div class="chart-subtitle">Six major expenditure classes under Food at Home</div>
+        <div id="chart-cpi-sub" style="height:340px"></div>
+      </div>
     </div>
-  </div>
 
-  <!-- Global (FAO FFPI) -->
-  <div class="chart-section" id="global-section">
+    <!-- PPI -->
+    <div class="chart-section" id="ppi-section">
+      <div class="chart-card">
+        <div class="chart-title">PPI — Food Value Chain: Farm to Consumer (Food-Specific)</div>
+        <div class="chart-subtitle">All four series are food-specific BLS measures tracing price pressure from farm gate through intermediate demand to finished consumer foods</div>
+        <div id="chart-ppi" style="height:420px"></div>
+      </div>
+    </div>
+
+    <!-- Numbers -->
+    <div class="chart-section" id="numbers-section">
+      <div class="numbers-card">
+        <div class="numbers-card-header">
+          <div class="chart-title">Latest Data — All Series</div>
+          <div class="chart-subtitle" id="numbers-subtitle"></div>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="numbers-table" id="numbers-table">
+            <thead>
+              <tr>
+                <th style="text-align:left">Series</th>
+                <th>Index</th>
+                <th>YoY %</th>
+                <th id="th-m3"></th>
+                <th id="th-m2"></th>
+                <th id="th-m1"></th>
+              </tr>
+            </thead>
+            <tbody id="numbers-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Earnings -->
+    <div class="chart-section" id="earnings-section">
+      <div id="earnings-metrics"></div>
+      <div class="chart-card">
+        <div class="chart-title">Average Hourly Earnings vs. Food Price Inflation</div>
+        <div class="chart-subtitle">Year-over-year % change — wages vs. food CPI</div>
+        <div id="chart-earn-yoy" style="height:320px"></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Real Food Purchasing Power of Wages</div>
+        <div class="chart-subtitle">Average hourly earnings deflated by Food at Home CPI, indexed to 100 at start of period</div>
+        <div id="chart-earn-real" style="height:300px"></div>
+      </div>
+    </div>
+
+  </div><!-- #us-content -->
+
+  <!-- Global content (FAO FFPI) — shown when region = 'global' -->
+  <div id="global-content" style="display:none; padding-top:1rem">
     <div class="chart-card">
       <div class="chart-title">FAO Food Price Index — Overall</div>
-      <div class="chart-subtitle">Base period: 2014–16 = 100 · Source: FAO, released monthly</div>
+      <div class="chart-subtitle">Base period: 2014–16 = 100 · Source: FAO, released monthly (~1-month lag)</div>
       <div id="chart-ffpi-main" style="height:320px"></div>
     </div>
     <div class="chart-card">
@@ -257,47 +319,7 @@
       <div class="chart-subtitle">Meat · Dairy · Cereals · Oils · Sugar</div>
       <div id="chart-ffpi-components" style="height:360px"></div>
     </div>
-  </div>
-
-  <!-- Numbers -->
-  <div class="chart-section" id="numbers-section">
-    <div class="numbers-card">
-      <div class="numbers-card-header">
-        <div class="chart-title">Latest Data — All Series</div>
-        <div class="chart-subtitle" id="numbers-subtitle"></div>
-      </div>
-      <div style="overflow-x:auto">
-        <table class="numbers-table" id="numbers-table">
-          <thead>
-            <tr>
-              <th style="text-align:left">Series</th>
-              <th>Index</th>
-              <th>YoY %</th>
-              <th id="th-m3"></th>
-              <th id="th-m2"></th>
-              <th id="th-m1"></th>
-            </tr>
-          </thead>
-          <tbody id="numbers-body"></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
-  <!-- Earnings -->
-  <div class="chart-section" id="earnings-section">
-    <div id="earnings-metrics"></div>
-    <div class="chart-card">
-      <div class="chart-title">Average Hourly Earnings vs. Food Price Inflation</div>
-      <div class="chart-subtitle">Year-over-year % change — wages vs. food CPI</div>
-      <div id="chart-earn-yoy" style="height:320px"></div>
-    </div>
-    <div class="chart-card">
-      <div class="chart-title">Real Food Purchasing Power of Wages</div>
-      <div class="chart-subtitle">Average hourly earnings deflated by Food at Home CPI, indexed to 100 at start of period</div>
-      <div id="chart-earn-real" style="height:300px"></div>
-    </div>
-  </div>
+  </div><!-- #global-content -->
 
   <div class="dash-footer-note">
     Data: <a href="https://www.bls.gov" target="_blank">U.S. Bureau of Labor Statistics</a> · BLS Public Data API · 10 years of history.
@@ -362,6 +384,7 @@ const METRIC_DEFS = [
 
 // ── State ─────────────────────────────────────────────────────────────────────
 let rawData        = {};
+let currentRegion  = 'us';
 let currentTab     = 'cpi';
 let currentMetric  = 'yoy';
 let currentHorizon = 24;
@@ -408,14 +431,15 @@ async function loadAll() {
   updateTimestamp();
   renderCards();
   renderCharts();
-  renderGlobal();
   renderNumbers();
   renderEarnings();
 }
 
 // ── Re-render charts when theme toggles ──────────────────────────────────────
 new MutationObserver(() => {
-  if (Object.keys(rawData).length) { renderCharts(); renderGlobal(); renderEarnings(); }
+  if (!Object.keys(rawData).length) return;
+  if (currentRegion === 'global') renderGlobal();
+  else { renderCharts(); renderEarnings(); }
 }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 
 // ── Transforms ────────────────────────────────────────────────────────────────
@@ -609,12 +633,24 @@ function renderCards() {
 }
 
 // ── Controls ──────────────────────────────────────────────────────────────────
+function setRegion(region) {
+  currentRegion = region;
+  const isGlobal = region === 'global';
+  document.getElementById('us-content').style.display    = isGlobal ? 'none' : '';
+  document.getElementById('global-content').style.display = isGlobal ? '' : 'none';
+  document.getElementById('tab-btns').style.display      = isGlobal ? 'none' : '';
+  document.getElementById('controls-sep').style.display  = isGlobal ? 'none' : '';
+  activate('region-btns', isGlobal ? 1 : 0);
+  // Re-render global charts now that the container is visible (fixes zero-width issue)
+  if (isGlobal && Object.keys(rawData).length) renderGlobal();
+}
+
 function switchTab(tab) {
   currentTab = tab;
   document.querySelectorAll('.chart-section').forEach(el =>
     el.classList.toggle('visible', el.id === `${tab}-section`)
   );
-  activate('tab-btns', ['cpi','ppi','global','numbers','earnings'].indexOf(tab));
+  activate('tab-btns', ['cpi','ppi','numbers','earnings'].indexOf(tab));
   const numbersActive = tab === 'numbers';
   document.querySelectorAll('#metric-btns button, #horizon-btns button').forEach(b => {
     b.disabled = numbersActive;
@@ -623,12 +659,14 @@ function switchTab(tab) {
 
 function setMetric(m) {
   currentMetric = m; activate('metric-btns', m === 'yoy' ? 0 : 1);
-  renderCharts(); renderGlobal(); renderEarnings();
+  if (currentRegion === 'global') renderGlobal();
+  else { renderCharts(); renderEarnings(); }
 }
 
 function setHorizon(months) {
   currentHorizon = months; activate('horizon-btns', [3,6,12,24,60,0].indexOf(months));
-  renderCharts(); renderGlobal(); renderEarnings();
+  if (currentRegion === 'global') renderGlobal();
+  else { renderCharts(); renderEarnings(); }
 }
 
 function activate(gid, idx) {
