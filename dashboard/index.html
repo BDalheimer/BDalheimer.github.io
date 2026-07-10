@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>U.S. Food Price Monitor</title>
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f3f4f6; color: #111827; min-height: 100vh;
+    }
+
+    /* Loading */
+    #loading-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(249,250,251,0.92); z-index: 200;
+      align-items: center; justify-content: center; flex-direction: column; gap: 1rem;
+    }
+    #loading-overlay.show { display: flex; }
+    .spinner {
+      width: 40px; height: 40px; border: 3px solid #e5e7eb;
+      border-top-color: #1d4ed8; border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text { font-size: 0.875rem; color: #6b7280; }
+
+    /* Error */
+    #error-banner {
+      display: none; background: #fef2f2; border-bottom: 1px solid #fecaca;
+      color: #991b1b; padding: 0.75rem 1.5rem; font-size: 0.85rem;
+    }
+
+    /* Header */
+    header {
+      background: white; border-bottom: 1px solid #e5e7eb;
+      padding: 0.9rem 1.5rem; display: flex; align-items: center; gap: 1.25rem; flex-wrap: wrap;
+    }
+    header h1 { font-size: 1.1rem; font-weight: 700; white-space: nowrap; }
+    .header-meta { font-size: 0.75rem; color: #9ca3af; }
+    .header-right { margin-left: auto; }
+
+    /* Metric cards */
+    #metric-cards {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 0.75rem; padding: 1rem 1.5rem;
+    }
+    .metric-card { background: white; border-radius: 10px; padding: 1rem 1.1rem; border: 1px solid #f3f4f6; }
+    .metric-label { font-size: 0.68rem; color: #6b7280; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.4rem; }
+    .metric-value { font-size: 1.55rem; font-weight: 700; line-height: 1; }
+    .metric-value.up   { color: #dc2626; }
+    .metric-value.down { color: #059669; }
+    .metric-value.flat { color: #374151; }
+    .metric-period { font-size: 0.68rem; color: #9ca3af; margin-top: 0.3rem; }
+
+    /* Controls */
+    #controls {
+      background: white; border-top: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb;
+      padding: 0.6rem 1.5rem; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+    }
+    .btn-group {
+      display: flex; gap: 0.2rem; background: #f3f4f6; border-radius: 8px; padding: 0.2rem;
+    }
+    .btn-group button {
+      padding: 0.35rem 0.8rem; border: none; border-radius: 6px; font-size: 0.8rem;
+      font-weight: 500; cursor: pointer; background: transparent; color: #4b5563;
+      transition: all 0.12s; white-space: nowrap;
+    }
+    .btn-group button.active {
+      background: white; color: #111827; box-shadow: 0 1px 4px rgba(0,0,0,0.12); font-weight: 600;
+    }
+    .btn-group button:disabled { opacity: 0.35; cursor: default; }
+    .controls-spacer { flex: 1; }
+
+    /* Chart sections */
+    .chart-section { padding: 1rem 1.5rem 0; display: none; }
+    .chart-section.visible { display: block; }
+    .chart-card {
+      background: white; border-radius: 10px; padding: 1.25rem 1.25rem 0.5rem;
+      margin-bottom: 1rem; border: 1px solid #f3f4f6;
+    }
+    .chart-title { font-size: 0.9rem; font-weight: 600; margin-bottom: 0.15rem; }
+    .chart-subtitle { font-size: 0.75rem; color: #6b7280; margin-bottom: 0.25rem; }
+
+    /* Numbers table */
+    .numbers-card {
+      background: white; border-radius: 10px; margin-bottom: 1rem;
+      border: 1px solid #f3f4f6; overflow: hidden;
+    }
+    .numbers-card-header {
+      padding: 1rem 1.25rem 0.6rem; border-bottom: 1px solid #f3f4f6;
+    }
+    .numbers-table {
+      width: 100%; border-collapse: collapse; font-size: 0.82rem;
+    }
+    .numbers-table th {
+      padding: 0.5rem 1rem; text-align: right; font-size: 0.7rem; font-weight: 600;
+      color: #6b7280; text-transform: uppercase; letter-spacing: 0.03em;
+      border-bottom: 1px solid #f3f4f6; white-space: nowrap;
+    }
+    .numbers-table th:first-child { text-align: left; }
+    .numbers-table td {
+      padding: 0.5rem 1rem; border-bottom: 1px solid #f9fafb; white-space: nowrap;
+    }
+    .numbers-table td.num { text-align: right; font-variant-numeric: tabular-nums; font-family: monospace; font-size: 0.8rem; }
+    .numbers-table tr.section-row td {
+      background: #f9fafb; font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.05em; color: #6b7280; padding: 0.4rem 1rem;
+    }
+    .numbers-table tr:last-child td { border-bottom: none; }
+    .numbers-table tr:hover td { background: #fafafa; }
+    .num.pos { color: #dc2626; }
+    .num.neg { color: #059669; }
+    .num.zero { color: #374151; }
+    .series-dot {
+      display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+      margin-right: 6px; vertical-align: middle; flex-shrink: 0;
+    }
+
+    /* Earnings sub-cards */
+    #earnings-metrics {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 0.75rem; margin-bottom: 1rem;
+    }
+    .earn-card { background: white; border-radius: 10px; padding: 1rem 1.1rem; border: 1px solid #f3f4f6; }
+    .earn-label { font-size: 0.68rem; color: #6b7280; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.35rem; }
+    .earn-val { font-size: 1.3rem; font-weight: 700; }
+    .earn-sub { font-size: 0.72rem; color: #6b7280; margin-top: 0.2rem; }
+
+    footer {
+      padding: 1.5rem; text-align: center; font-size: 0.72rem; color: #9ca3af; line-height: 1.7;
+    }
+    footer a { color: #9ca3af; }
+  </style>
+</head>
+<body>
+
+<div id="loading-overlay">
+  <div class="spinner"></div>
+  <div class="loading-text">Fetching BLS data…</div>
+</div>
+<div id="error-banner"></div>
+
+<header>
+  <h1>U.S. Food Price Monitor</h1>
+  <span class="header-meta">Source: U.S. Bureau of Labor Statistics · Not Seasonally Adjusted · CPI base: 1982–84 = 100</span>
+  <div class="header-right">
+    <span class="header-meta" id="last-updated"></span>
+  </div>
+</header>
+
+<div id="metric-cards"></div>
+
+<div id="controls">
+  <div class="btn-group" id="tab-btns">
+    <button class="active" onclick="switchTab('cpi')">CPI</button>
+    <button onclick="switchTab('ppi')">PPI</button>
+    <button onclick="switchTab('numbers')">Numbers</button>
+    <button onclick="switchTab('earnings')">Earnings</button>
+  </div>
+  <div class="btn-group" id="metric-btns">
+    <button class="active" onclick="setMetric('yoy')">YoY %</button>
+    <button onclick="setMetric('level')">Index Level</button>
+  </div>
+  <div class="controls-spacer"></div>
+  <div class="btn-group" id="horizon-btns">
+    <button onclick="setHorizon(3)">3M</button>
+    <button onclick="setHorizon(6)">6M</button>
+    <button onclick="setHorizon(12)">1Y</button>
+    <button class="active" onclick="setHorizon(24)">2Y</button>
+    <button onclick="setHorizon(60)">5Y</button>
+    <button onclick="setHorizon(0)">Max</button>
+  </div>
+</div>
+
+<!-- CPI -->
+<div class="chart-section visible" id="cpi-section">
+  <div class="chart-card">
+    <div class="chart-title">CPI — Main Food Categories</div>
+    <div class="chart-subtitle">All Items · All Food · Food at Home · Food Away from Home</div>
+    <div id="chart-cpi-main" style="height:340px"></div>
+  </div>
+  <div class="chart-card">
+    <div class="chart-title">CPI — Food at Home Subcategories</div>
+    <div class="chart-subtitle">Six major expenditure classes under Food at Home</div>
+    <div id="chart-cpi-sub" style="height:340px"></div>
+  </div>
+</div>
+
+<!-- PPI -->
+<div class="chart-section" id="ppi-section">
+  <div class="chart-card">
+    <div class="chart-title">PPI — Food Value Chain: Farm to Consumer (Food-Specific)</div>
+    <div class="chart-subtitle">
+      All four series are food-specific BLS measures tracing price pressure from farm gate through intermediate demand to finished consumer foods
+    </div>
+    <div id="chart-ppi" style="height:420px"></div>
+  </div>
+</div>
+
+<!-- Numbers -->
+<div class="chart-section" id="numbers-section">
+  <div class="numbers-card">
+    <div class="numbers-card-header">
+      <div class="chart-title">Latest Data — All Series</div>
+      <div class="chart-subtitle" id="numbers-subtitle"></div>
+    </div>
+    <div style="overflow-x:auto">
+      <table class="numbers-table" id="numbers-table">
+        <thead>
+          <tr>
+            <th style="text-align:left">Series</th>
+            <th>Index</th>
+            <th>YoY %</th>
+            <th id="th-m3"></th>
+            <th id="th-m2"></th>
+            <th id="th-m1"></th>
+          </tr>
+        </thead>
+        <tbody id="numbers-body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Earnings -->
+<div class="chart-section" id="earnings-section">
+  <div id="earnings-metrics"></div>
+  <div class="chart-card">
+    <div class="chart-title">Average Hourly Earnings vs. Food Price Inflation</div>
+    <div class="chart-subtitle">Year-over-year % change — wages vs. food CPI</div>
+    <div id="chart-earn-yoy" style="height:320px"></div>
+  </div>
+  <div class="chart-card">
+    <div class="chart-title">Real Food Purchasing Power of Wages</div>
+    <div class="chart-subtitle">Average hourly earnings deflated by Food at Home CPI, indexed to 100 at start of period</div>
+    <div id="chart-earn-real" style="height:300px"></div>
+  </div>
+</div>
+
+<footer>
+  Data: <a href="https://www.bls.gov" target="_blank">U.S. Bureau of Labor Statistics</a> · BLS Public Data API · 10 years of history.
+  CPI-U (CUUR0000*): not seasonally adjusted, U.S. city average.
+  PPI commodity (WPU*) and FD-ID (WPUID621, WPUFD4111): not seasonally adjusted.
+  Average hourly earnings (CES*): seasonally adjusted.
+  Data updated monthly after each BLS release.
+</footer>
+
+<script>
+// ── Series definitions ────────────────────────────────────────────────────────
+const CPI_MAIN = [
+  { id: 'CUUR0000SA0',   label: 'All Items',           color: '#6b7280', dash: 'dot' },
+  { id: 'CUUR0000SAF1',  label: 'All Food',            color: '#1d4ed8' },
+  { id: 'CUUR0000SAF11', label: 'Food at Home',        color: '#059669' },
+  { id: 'CUUR0000SEFV',  label: 'Food Away from Home', color: '#d97706' },
+];
+const CPI_SUB = [
+  { id: 'CUUR0000SAF111', label: 'Cereals & Bakery',            color: '#7c3aed' },
+  { id: 'CUUR0000SAF112', label: 'Meats, Poultry, Fish & Eggs', color: '#dc2626' },
+  { id: 'CUUR0000SEFJ',   label: 'Dairy & Related',             color: '#0891b2' },
+  { id: 'CUUR0000SAF113', label: 'Fruits & Vegetables',         color: '#16a34a' },
+  { id: 'CUUR0000SAF114', label: 'Nonalcoholic Beverages',      color: '#ea580c' },
+  { id: 'CUUR0000SAF115', label: 'Other Food at Home',          color: '#9333ea' },
+];
+// Food-specific FD-ID value chain (all series are food-specific)
+const PPI_FOOD = [
+  { id: 'WPU01',     label: 'Farm Products',                       color: '#166534', desc: 'Raw agricultural commodities at farm gate' },
+  { id: 'WPUID621',  label: 'Unprocessed Foodstuffs & Feedstuffs', color: '#4d7c0f', desc: 'Unprocessed food inputs entering manufacturing' },
+  { id: 'WPU02',     label: 'Processed Foods & Feeds',             color: '#b45309', desc: 'Food at processing/manufacturing stage' },
+  { id: 'WPUFD4111', label: 'Finished Consumer Foods',             color: '#1d4ed8', desc: 'Final demand: prices received by food producers' },
+];
+const EARNINGS = [
+  { id: 'CES0500000003', label: 'All Private Employees', color: '#374151' },
+  { id: 'CES3231100003', label: 'Food Manufacturing',    color: '#b45309' },
+  { id: 'CES7000000003', label: 'Leisure & Hospitality', color: '#7c3aed' },
+];
+
+const METRIC_DEFS = [
+  { id: 'CUUR0000SA0',   label: 'All Items CPI'        },
+  { id: 'CUUR0000SAF1',  label: 'All Food CPI'         },
+  { id: 'CUUR0000SAF11', label: 'Food at Home'         },
+  { id: 'CUUR0000SEFV',  label: 'Food Away'            },
+  { id: 'WPU01',         label: 'Farm Products PPI'    },
+  { id: 'WPUFD4111',     label: 'Consumer Foods PPI'   },
+];
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let rawData        = {};
+let currentTab     = 'cpi';
+let currentMetric  = 'yoy';
+let currentHorizon = 24;
+
+// ── Load from static data.json ────────────────────────────────────────────────
+async function loadAll() {
+  showLoading(true); hideError();
+  try {
+    const res = await fetch('data.json');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const json = await res.json();
+    // Parse date strings ("YYYY-MM-15") to Date objects (noon UTC avoids timezone shifts)
+    for (const [id, obs] of Object.entries(json.series || {})) {
+      rawData[id] = obs.map(o => ({ date: new Date(o.date + 'T12:00:00Z'), value: o.value }));
+    }
+    if (json.fetched) {
+      const d = new Date(json.fetched);
+      document.getElementById('last-updated').textContent =
+        'Updated ' + d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    }
+  } catch (err) {
+    showError(`Could not load data: ${err.message}`);
+    showLoading(false); return;
+  }
+  showLoading(false);
+  updateTimestamp();
+  renderCards();
+  renderCharts();
+  renderNumbers();
+  renderEarnings();
+}
+
+// ── Transforms ────────────────────────────────────────────────────────────────
+function yoyArr(obs) {
+  if (!obs || !obs.length) return [];
+  const idx = new Map(obs.map(o => [`${o.date.getFullYear()}-${o.date.getMonth()}`, o.value]));
+  return obs.flatMap(o => {
+    const prev = idx.get(`${o.date.getFullYear() - 1}-${o.date.getMonth()}`);
+    return prev == null ? [] : [{ date: o.date, value: ((o.value - prev) / prev) * 100 }];
+  });
+}
+
+function clip(obs, months) {
+  if (!obs || months === 0) return obs || [];
+  const cutoff = new Date(); cutoff.setMonth(cutoff.getMonth() - months);
+  return obs.filter(o => o.date >= cutoff);
+}
+
+function display(id) {
+  const raw = rawData[id]; if (!raw) return [];
+  return clip(currentMetric === 'yoy' ? yoyArr(raw) : raw, currentHorizon);
+}
+
+function latestYoY(id) {
+  const obs = rawData[id]; if (!obs || obs.length < 14) return null;
+  const latest = obs[obs.length - 1];
+  const prev = obs.find(o =>
+    o.date.getMonth() === latest.date.getMonth() &&
+    o.date.getFullYear() === latest.date.getFullYear() - 1
+  );
+  return prev ? ((latest.value - prev.value) / prev.value) * 100 : null;
+}
+
+function mom(obs, i) {
+  // MoM % change ending at index i
+  if (!obs || i < 1 || i >= obs.length) return null;
+  return ((obs[i].value - obs[i - 1].value) / obs[i - 1].value) * 100;
+}
+
+// ── Plotly helpers ────────────────────────────────────────────────────────────
+const LAYOUT = {
+  margin: { t: 8, r: 16, b: 40, l: 58 }, paper_bgcolor: 'white', plot_bgcolor: 'white',
+  font: { family: 'system-ui, -apple-system, sans-serif', size: 11.5, color: '#374151' },
+  legend: { orientation: 'h', y: -0.22, x: 0, font: { size: 11 } },
+  xaxis: { gridcolor: '#f3f4f6', zeroline: false },
+  yaxis: { gridcolor: '#f3f4f6', zeroline: true, zerolinecolor: '#d1d5db' },
+  hovermode: 'x unified',
+  hoverlabel: { bgcolor: 'white', bordercolor: '#e5e7eb', font: { size: 11.5 } },
+};
+const CFG = { responsive: true, displayModeBar: false };
+
+function yLabel() { return currentMetric === 'yoy' ? 'Year-over-Year Change (%)' : 'Index (1982–84 = 100)'; }
+
+function mkTrace(def, data, extraOpts) {
+  return {
+    x: data.map(d => d.date), y: data.map(d => d.value),
+    name: def.label, type: 'scatter', mode: 'lines',
+    line: { color: def.color, width: 2, dash: def.dash || 'solid' },
+    hovertemplate: `<b>${def.label}</b>  %{y:.2f}${(extraOpts?.pct ?? currentMetric === 'yoy') ? '%' : ''}<extra></extra>`,
+    ...extraOpts,
+  };
+}
+
+// ── Render charts ─────────────────────────────────────────────────────────────
+function renderCharts() {
+  const yax = { ...LAYOUT.yaxis, title: { text: yLabel(), font: { size: 11 } } };
+
+  Plotly.react('chart-cpi-main', CPI_MAIN.map(s => mkTrace(s, display(s.id))),
+    { ...LAYOUT, yaxis: yax }, CFG);
+
+  Plotly.react('chart-cpi-sub', CPI_SUB.map(s => mkTrace(s, display(s.id))),
+    { ...LAYOUT, yaxis: yax }, CFG);
+
+  Plotly.react('chart-ppi', PPI_FOOD.map(s => mkTrace(s, display(s.id))),
+    { ...LAYOUT, margin: { t: 8, r: 16, b: 56, l: 58 }, yaxis: yax }, CFG);
+}
+
+// ── Numbers table ─────────────────────────────────────────────────────────────
+function renderNumbers() {
+  // Determine latest 3 months from CPI data (most complete)
+  const ref = rawData['CUUR0000SA0'];
+  if (!ref || ref.length < 4) return;
+  const last = ref.length - 1;
+  const months = [ref[last - 2], ref[last - 1], ref[last]];
+  const monthLabel = d => d.date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+
+  document.getElementById('th-m3').textContent = monthLabel(months[0]) + ' MoM';
+  document.getElementById('th-m2').textContent = monthLabel(months[1]) + ' MoM';
+  document.getElementById('th-m1').textContent = monthLabel(months[2]) + ' MoM';
+  document.getElementById('numbers-subtitle').textContent =
+    `YoY and month-over-month % changes through ${monthLabel(months[2])}`;
+
+  const fmtPct = v => v == null ? '—' : (v > 0 ? '+' : '') + v.toFixed(2) + '%';
+  const cls = v => v == null ? '' : v > 0.05 ? 'pos' : v < -0.05 ? 'neg' : 'zero';
+
+  function buildRow(def) {
+    const obs = rawData[def.id]; if (!obs || obs.length < 14) return '';
+    const n = obs.length - 1;
+    const val = obs[n].value;
+    const yy  = latestYoY(def.id);
+
+    // find indices matching the 3 target months
+    const getIdx = target => obs.findIndex(o =>
+      o.date.getFullYear() === target.date.getFullYear() &&
+      o.date.getMonth()    === target.date.getMonth()
+    );
+    const i3 = getIdx(months[0]), i2 = getIdx(months[1]), i1 = getIdx(months[2]);
+    const m3 = mom(obs, i3), m2 = mom(obs, i2), m1 = mom(obs, i1);
+
+    return `<tr>
+      <td>
+        <span class="series-dot" style="background:${def.color}"></span>${def.label}
+      </td>
+      <td class="num">${val.toFixed(3)}</td>
+      <td class="num ${cls(yy)}">${fmtPct(yy)}</td>
+      <td class="num ${cls(m3)}">${fmtPct(m3)}</td>
+      <td class="num ${cls(m2)}">${fmtPct(m2)}</td>
+      <td class="num ${cls(m1)}">${fmtPct(m1)}</td>
+    </tr>`;
+  }
+
+  const tbody = document.getElementById('numbers-body');
+  tbody.innerHTML =
+    `<tr class="section-row"><td colspan="6">Consumer Price Index (CPI-U · Not Seasonally Adjusted · U.S. City Average)</td></tr>` +
+    [...CPI_MAIN, ...CPI_SUB].map(buildRow).join('') +
+    `<tr class="section-row"><td colspan="6">Producer Price Index (PPI · Not Seasonally Adjusted · Food Value Chain)</td></tr>` +
+    PPI_FOOD.map(buildRow).join('');
+}
+
+// ── Earnings ──────────────────────────────────────────────────────────────────
+function renderEarnings() {
+  // Metric cards
+  const mc = document.getElementById('earnings-metrics');
+  mc.innerHTML = '';
+  EARNINGS.forEach(s => {
+    const obs = rawData[s.id]; if (!obs || obs.length < 14) return;
+    const latest = obs[obs.length - 1];
+    const yy = latestYoY(s.id);
+    const cls = yy == null ? 'flat' : yy > 0 ? 'up' : 'down';
+    const sign = yy != null && yy > 0 ? '+' : '';
+    const mon = latest.date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+    mc.innerHTML += `
+      <div class="earn-card">
+        <div class="earn-label" style="color:${s.color}">${s.label}</div>
+        <div class="earn-val">$${latest.value.toFixed(2)}/hr</div>
+        <div class="earn-sub" style="color:${yy > 0 ? '#dc2626' : yy < 0 ? '#059669' : '#374151'}">
+          ${yy != null ? sign + yy.toFixed(1) + '% YoY' : '—'} · ${mon}
+        </div>
+      </div>`;
+  });
+
+  // Chart 1: YoY% earnings vs food CPI
+  const foodCpi = { id: 'CUUR0000SAF11', label: 'Food at Home CPI', color: '#059669', dash: 'dash' };
+  const yoyTraces = [
+    ...EARNINGS.map(s => mkTrace(s, clip(yoyArr(rawData[s.id] || []), currentHorizon), { pct: true })),
+    mkTrace(foodCpi, clip(yoyArr(rawData[foodCpi.id] || []), currentHorizon), { pct: true }),
+  ];
+  Plotly.react('chart-earn-yoy', yoyTraces, {
+    ...LAYOUT,
+    yaxis: { ...LAYOUT.yaxis, title: { text: 'Year-over-Year Change (%)', font: { size: 11 } } },
+  }, CFG);
+
+  // Chart 2: Real purchasing power (AHE / Food CPI, re-indexed to 100)
+  const foodObs = rawData['CUUR0000SAF11'] || [];
+  const foodMap = new Map(foodObs.map(o => [`${o.date.getFullYear()}-${o.date.getMonth()}`, o.value]));
+
+  const realTraces = EARNINGS.map(s => {
+    const obs = clip(rawData[s.id] || [], currentHorizon);
+    const pts = obs.flatMap(o => {
+      const fc = foodMap.get(`${o.date.getFullYear()}-${o.date.getMonth()}`);
+      return fc ? [{ date: o.date, value: (o.value / fc) * 100 }] : [];
+    });
+    if (!pts.length) return null;
+    const base = pts[0].value;
+    const indexed = pts.map(p => ({ date: p.date, value: (p.value / base) * 100 }));
+    return mkTrace(s, indexed, { pct: false });
+  }).filter(Boolean);
+
+  Plotly.react('chart-earn-real', realTraces, {
+    ...LAYOUT,
+    yaxis: { ...LAYOUT.yaxis, title: { text: 'Index (start of period = 100)', font: { size: 11 } } },
+  }, CFG);
+}
+
+// ── Metric cards ──────────────────────────────────────────────────────────────
+function renderCards() {
+  const c = document.getElementById('metric-cards'); c.innerHTML = '';
+  METRIC_DEFS.forEach(m => {
+    const obs = rawData[m.id]; if (!obs || obs.length < 14) return;
+    const latest = obs[obs.length - 1];
+    const pct = latestYoY(m.id);
+    const cls = pct == null ? 'flat' : pct > 0 ? 'up' : 'down';
+    const val = pct != null ? `${pct > 0 ? '+' : ''}${pct.toFixed(1)}%` : '—';
+    const mon = latest.date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+    const card = document.createElement('div'); card.className = 'metric-card';
+    card.innerHTML = `
+      <div class="metric-label">${m.label}</div>
+      <div class="metric-value ${cls}">${val}</div>
+      <div class="metric-period">YoY · ${mon}</div>`;
+    c.appendChild(card);
+  });
+}
+
+// ── Controls ──────────────────────────────────────────────────────────────────
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.chart-section').forEach(el =>
+    el.classList.toggle('visible', el.id === `${tab}-section`)
+  );
+  activate('tab-btns', ['cpi','ppi','numbers','earnings'].indexOf(tab));
+
+  // Disable metric/horizon toggles on Numbers (table is fixed display)
+  const numbersActive = tab === 'numbers';
+  document.querySelectorAll('#metric-btns button, #horizon-btns button').forEach(b => {
+    b.disabled = numbersActive;
+  });
+}
+
+function setMetric(m) {
+  currentMetric = m; activate('metric-btns', m === 'yoy' ? 0 : 1);
+  renderCharts(); renderEarnings();
+}
+
+function setHorizon(months) {
+  currentHorizon = months; activate('horizon-btns', [3,6,12,24,60,0].indexOf(months));
+  renderCharts(); renderEarnings();
+}
+
+function activate(gid, idx) {
+  document.querySelectorAll(`#${gid} button`).forEach((b,i) => b.classList.toggle('active', i === idx));
+}
+
+// ── UI helpers ────────────────────────────────────────────────────────────────
+function showLoading(on) { document.getElementById('loading-overlay').classList.toggle('show', on); }
+function showError(msg) { const e = document.getElementById('error-banner'); e.textContent = '⚠  ' + msg; e.style.display = 'block'; }
+function hideError() { document.getElementById('error-banner').style.display = 'none'; }
+function updateTimestamp() {
+  const all = Object.values(rawData).flatMap(obs => obs.length ? [obs[obs.length-1].date] : []);
+  if (!all.length) return;
+  const latest = new Date(Math.max(...all.map(d => d.getTime())));
+  document.getElementById('last-updated').textContent =
+    'Data through ' + latest.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+}
+
+window.addEventListener('DOMContentLoaded', loadAll);
+</script>
+</body>
+</html>
