@@ -24,7 +24,7 @@
     { name: 'Advising',     href: '/advising.html' },
     { name: 'Media',        href: '/media.html' },
     { name: 'Software',     href: '/software.html' },
-    { name: 'Monitor',      href: '/dashboard/' },
+    { name: 'Price Monitor', href: '/dashboard/' },
   ];
 
   function isActive(href) {
