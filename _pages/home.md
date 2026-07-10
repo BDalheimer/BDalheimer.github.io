@@ -18,7 +18,7 @@ summaries of my research papers.
 
 I joined the Department of Agricultural Economics of Purdue University in August 2023. My research focuses on the economics of international agricultural/food supply chains and trade under uncertainty. For instance, how Global Value Chain (GVC) participation in agriculture relates to consumer and producer welfare, and how regulation affects input sourcing of agri-food firms.
 
-My work has been covered in media outlets including *The Wall Street Journal*, *CNN Business*, *Yahoo Finance*, *Newsweek*, and other national and international publications.
+My work has been covered in media outlets including *The Wall Street Journal*, *CNN Business*, *Yahoo Finance*, *Newsweek*, *USA Today*, and other national and international publications.
 
 Before joining Purdue, I was a Visiting Fellow at the University of Minnesota, a Professor ad Interim at the University of Kiel, and a Postdoc at the University of Göttingen, where my work focused on measuring environmental performance of food production systems, agricultural market analysis, and statistical software development in causal time series analysis.
 
