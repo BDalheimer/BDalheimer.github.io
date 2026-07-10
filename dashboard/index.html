@@ -46,11 +46,15 @@
       padding: 0 1.5rem 4rem;
     }
 
-    /* Page title */
+    /* Page title — flex row: title/meta left, region toggle right */
     .dash-head {
       padding: 2.5rem 0 1.5rem;
       border-bottom: 1px solid var(--border);
       margin-bottom: 1.25rem;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1.5rem;
     }
     .dash-head h1 {
       font-family: 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif;
@@ -61,6 +65,7 @@
     }
     .dash-meta { font-size: 0.78rem; color: var(--muted); margin-top: 0.2rem; }
     #last-updated { font-size: 0.72rem; color: var(--faint); margin-top: 0.15rem; }
+    .dash-head-toggle { flex-shrink: 0; padding-top: 0.6rem; }
 
     /* Metric summary cards */
     #metric-cards {
@@ -83,18 +88,15 @@
     .metric-value.flat { color: var(--text); }
     .metric-period { font-size: 0.68rem; color: var(--faint); margin-top: 0.3rem; }
 
-    /* Region toggle (US | Global) — top-level mode selector */
+    /* Region toggle (US | Global) */
     .region-toggle button {
-      font-size: 0.82rem; font-weight: 600; padding: 0.38rem 1rem;
+      font-size: 0.82rem; font-weight: 600; padding: 0.42rem 1.1rem;
     }
     .region-toggle button.active {
       background: var(--accent); color: #fff;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.18);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
     }
     .region-toggle button.active:hover { background: var(--accent-h); }
-    .controls-sep {
-      width: 1px; height: 20px; background: var(--border); flex-shrink: 0;
-    }
 
     /* Tab/controls bar */
     #controls {
@@ -205,19 +207,22 @@
 <div class="dash-outer">
 
   <div class="dash-head">
-    <h1>U.S. Food Price &amp; Supply Chain Monitor</h1>
-    <div class="dash-meta">Source: U.S. Bureau of Labor Statistics · Not Seasonally Adjusted · CPI base: 1982–84 = 100</div>
-    <div id="last-updated"></div>
+    <div>
+      <h1 id="dash-title">U.S. Food Price &amp; Supply Chain Monitor</h1>
+      <div class="dash-meta" id="dash-meta">Source: BLS · Not Seasonally Adjusted · CPI base: 1982–84 = 100</div>
+      <div id="last-updated"></div>
+    </div>
+    <div class="dash-head-toggle">
+      <div class="btn-group region-toggle" id="region-btns">
+        <button class="active" onclick="setRegion('us')">US</button>
+        <button onclick="setRegion('global')">Global</button>
+      </div>
+    </div>
   </div>
 
   <div id="metric-cards"></div>
 
   <div id="controls">
-    <div class="btn-group region-toggle" id="region-btns">
-      <button class="active" onclick="setRegion('us')">US</button>
-      <button onclick="setRegion('global')">Global</button>
-    </div>
-    <div class="controls-sep" id="controls-sep"></div>
     <div class="btn-group" id="tab-btns">
       <button class="active" onclick="switchTab('cpi')">CPI</button>
       <button onclick="switchTab('ppi')">PPI</button>
@@ -633,16 +638,32 @@ function renderCards() {
 }
 
 // ── Controls ──────────────────────────────────────────────────────────────────
+const TITLES = {
+  us:     { h1: 'U.S. Food Price & Supply Chain Monitor',
+            meta: 'Source: BLS · Not Seasonally Adjusted · CPI base: 1982–84 = 100' },
+  global: { h1: 'Global Food Price Monitor',
+            meta: 'Source: FAO Food Price Index · Base period: 2014–16 = 100 · Released monthly' },
+};
+
 function setRegion(region) {
   currentRegion = region;
   const isGlobal = region === 'global';
+
+  // Swap title and meta
+  document.getElementById('dash-title').textContent = TITLES[region].h1;
+  document.getElementById('dash-meta').textContent  = TITLES[region].meta;
+
+  // Show/hide content and sub-tabs
   document.getElementById('us-content').style.display    = isGlobal ? 'none' : '';
-  document.getElementById('global-content').style.display = isGlobal ? '' : 'none';
+  document.getElementById('global-content').style.display = isGlobal ? ''     : 'none';
   document.getElementById('tab-btns').style.display      = isGlobal ? 'none' : '';
-  document.getElementById('controls-sep').style.display  = isGlobal ? 'none' : '';
   activate('region-btns', isGlobal ? 1 : 0);
-  // Re-render global charts now that the container is visible (fixes zero-width issue)
-  if (isGlobal && Object.keys(rawData).length) renderGlobal();
+
+  // Defer chart render until after the browser has done layout so Plotly
+  // gets real container dimensions (not zero from display:none).
+  if (isGlobal && Object.keys(rawData).length) {
+    requestAnimationFrame(() => renderGlobal());
+  }
 }
 
 function switchTab(tab) {
