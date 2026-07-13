@@ -1,11 +1,12 @@
 name: Update Dashboard Data
 
 on:
-  # Run daily at 14:30 UTC = 9:30 AM CDT (summer) / 8:30 AM CST (winter)
-  # BLS releases CPI/PPI at 8:30 AM ET, so data is available by then.
-  # The check_bls_release.py step gates the actual fetch to real release days.
+  # Run daily at 13:00 UTC = 9:00 AM EDT (summer) / 8:00 AM EST (winter)
+  # BLS releases CPI/PPI at 8:30 AM ET; 30 min later is enough for the API
+  # to reflect new data. The check_bls_release.py step gates the actual
+  # fetch to real release days so non-release days exit immediately.
   schedule:
-    - cron: '30 14 * * *'
+    - cron: '0 13 * * *'
   # Manual trigger for ad-hoc updates or if the schedule misses a release
   workflow_dispatch:
 
