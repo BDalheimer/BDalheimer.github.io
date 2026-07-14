@@ -424,7 +424,7 @@ function makePlotLayout(extra) {
 async function loadAll() {
   showLoading(true); hideError();
   try {
-    const res = await fetch('data.json');
+    const res = await fetch('data.json', { cache: 'no-cache' });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const json = await res.json();
     for (const [id, obs] of Object.entries(json.series || {})) {
