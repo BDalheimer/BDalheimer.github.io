@@ -38,5 +38,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git add dashboard/data.json
           git diff --staged --quiet && echo "No changes to commit" || \
-            git commit -m "Update dashboard data $(date -u +%Y-%m-%d) [skip ci]"
+            git commit -m "Update dashboard data $(date -u +%Y-%m-%d)"
           git push
