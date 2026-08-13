@@ -37,6 +37,8 @@ SERIES = [
     "WPUID621",
     "WPU02",
     "WPUFD4111",
+    # PPI Final Demand (headline, seasonally adjusted)
+    "WPSFD4",
     # Average hourly earnings
     "CES0500000003",
     "CES3231100003",

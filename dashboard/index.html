@@ -212,10 +212,14 @@
       <div class="dash-meta" id="dash-meta">Source: BLS · Not Seasonally Adjusted · CPI base: 1982–84 = 100</div>
       <div id="last-updated"></div>
     </div>
-    <div class="dash-head-toggle">
+    <div class="dash-head-toggle" style="display:flex;flex-direction:column;align-items:flex-end;gap:0.5rem;">
       <div class="btn-group region-toggle" id="region-btns">
         <button class="active" onclick="setRegion('us')">US</button>
         <button onclick="setRegion('global')">Global</button>
+      </div>
+      <div class="btn-group" id="card-metric-btns">
+        <button class="active" onclick="setCardMetric('yoy')">YoY</button>
+        <button onclick="setCardMetric('mom')">MoM</button>
       </div>
     </div>
   </div>
@@ -265,7 +269,7 @@
     <div class="chart-section" id="ppi-section">
       <div class="chart-card">
         <div class="chart-title">PPI — Food Value Chain: Farm to Consumer (Food-Specific)</div>
-        <div class="chart-subtitle">All four series are food-specific BLS measures tracing price pressure from farm gate through intermediate demand to finished consumer foods</div>
+        <div class="chart-subtitle">Food-specific BLS measures tracing price pressure from farm gate to consumer, plus the headline PPI Final Demand (all goods &amp; services, dashed grey) as a benchmark</div>
         <div id="chart-ppi" style="height:420px"></div>
       </div>
     </div>
@@ -366,6 +370,7 @@ const CPI_SUB = [
   { id: 'CUUR0000SAF115', label: 'Other Food at Home',          color: '#9333ea' },
 ];
 const PPI_FOOD = [
+  { id: 'WPSFD4',    label: 'PPI Final Demand (All)',              color: '#6b7280', dash: 'dot',  desc: 'Headline PPI: all final demand goods & services (seasonally adjusted)' },
   { id: 'WPU01',     label: 'Farm Products',                       color: '#166534', desc: 'Raw agricultural commodities at farm gate' },
   { id: 'WPUID621',  label: 'Unprocessed Foodstuffs & Feedstuffs', color: '#4d7c0f', desc: 'Unprocessed food inputs entering manufacturing' },
   { id: 'WPU02',     label: 'Processed Foods & Feeds',             color: '#b45309', desc: 'Food at processing/manufacturing stage' },
@@ -382,6 +387,7 @@ const US_METRIC_DEFS = [
   { id: 'CUUR0000SAF1',  label: 'All Food CPI'       },
   { id: 'CUUR0000SAF11', label: 'Food at Home'       },
   { id: 'CUUR0000SEFV',  label: 'Food Away'          },
+  { id: 'WPSFD4',        label: 'PPI Final Demand'   },
   { id: 'WPU01',         label: 'Farm Products PPI'  },
   { id: 'WPUFD4111',     label: 'Consumer Foods PPI' },
 ];
@@ -400,6 +406,7 @@ let currentRegion  = 'us';
 let currentTab     = 'cpi';
 let currentMetric  = 'yoy';
 let currentHorizon = 24;
+let cardMetric     = 'yoy';
 
 // ── Plotly theme-aware layout ─────────────────────────────────────────────────
 function makePlotLayout(extra) {
@@ -473,6 +480,12 @@ function clip(obs, months) {
 function display(id) {
   const raw = rawData[id]; if (!raw) return [];
   return clip(currentMetric === 'yoy' ? yoyArr(raw) : raw, currentHorizon);
+}
+
+function latestMoM(id) {
+  const obs = rawData[id]; if (!obs || obs.length < 2) return null;
+  const n = obs.length - 1;
+  return ((obs[n].value - obs[n-1].value) / obs[n-1].value) * 100;
 }
 
 function latestYoY(id) {
@@ -630,17 +643,18 @@ function renderCards() {
   const defs = currentRegion === 'global' ? GLOBAL_METRIC_DEFS : US_METRIC_DEFS;
   const c = document.getElementById('metric-cards'); c.innerHTML = '';
   defs.forEach(m => {
-    const obs = rawData[m.id]; if (!obs || obs.length < 14) return;
+    const obs = rawData[m.id]; if (!obs || obs.length < 2) return;
     const latest = obs[obs.length - 1];
-    const pct = latestYoY(m.id);
+    const pct = cardMetric === 'mom' ? latestMoM(m.id) : latestYoY(m.id);
     const cls = pct == null ? 'flat' : pct > 0 ? 'up' : 'down';
     const val = pct != null ? `${pct > 0 ? '+' : ''}${pct.toFixed(1)}%` : '—';
     const mon = latest.date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+    const period = cardMetric === 'mom' ? 'MoM' : 'YoY';
     const card = document.createElement('div'); card.className = 'metric-card';
     card.innerHTML = `
       <div class="metric-label">${m.label}</div>
       <div class="metric-value ${cls}">${val}</div>
-      <div class="metric-period">YoY · ${mon}</div>`;
+      <div class="metric-period">${period} · ${mon}</div>`;
     c.appendChild(card);
   });
 }
@@ -687,6 +701,11 @@ function switchTab(tab) {
   document.querySelectorAll('#metric-btns button, #horizon-btns button').forEach(b => {
     b.disabled = numbersActive;
   });
+}
+
+function setCardMetric(m) {
+  cardMetric = m; activate('card-metric-btns', m === 'yoy' ? 0 : 1);
+  if (Object.keys(rawData).length) renderCards();
 }
 
 function setMetric(m) {
