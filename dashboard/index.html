@@ -212,18 +212,20 @@
       <div class="dash-meta" id="dash-meta">Source: BLS · Not Seasonally Adjusted · CPI base: 1982–84 = 100</div>
       <div id="last-updated"></div>
     </div>
-    <div class="dash-head-toggle" style="display:flex;flex-direction:column;align-items:flex-end;gap:0.5rem;">
+    <div class="dash-head-toggle">
       <div class="btn-group region-toggle" id="region-btns">
         <button class="active" onclick="setRegion('us')">US</button>
         <button onclick="setRegion('global')">Global</button>
       </div>
-      <div class="btn-group" id="card-metric-btns">
-        <button class="active" onclick="setCardMetric('yoy')">YoY</button>
-        <button onclick="setCardMetric('mom')">MoM</button>
-      </div>
     </div>
   </div>
 
+  <div style="display:flex;justify-content:flex-end;margin-bottom:0.5rem;">
+    <div class="btn-group" id="card-metric-btns">
+      <button class="active" onclick="setCardMetric('yoy')">YoY</button>
+      <button onclick="setCardMetric('mom')">MoM</button>
+    </div>
+  </div>
   <div id="metric-cards"></div>
 
   <div id="controls">
