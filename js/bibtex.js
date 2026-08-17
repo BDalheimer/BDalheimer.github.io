@@ -152,6 +152,9 @@
     if (entry.video) {
       links.push(`<a href="${entry.video}" target="_blank" rel="noopener" class="badge">Video</a>`);
     }
+    if (entry.wp) {
+      links.push(`<a href="${entry.wp}" target="_blank" rel="noopener" class="badge">WP</a>`);
+    }
     if (entry.url && !entry.doi) {
       links.push(`<a href="${entry.url}" target="_blank" rel="noopener" class="badge">Link</a>`);
     }
