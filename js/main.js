@@ -42,23 +42,38 @@
 <nav>
   <div class="nav-inner">
     <a class="nav-name" href="/">Bernhard Dalheimer</a>
-    <ul class="nav-links">${navLinks}</ul>
-    <button class="theme-btn" id="theme-toggle" aria-label="Toggle colour theme">
-      <svg id="icon-sun" width="15" height="15" viewBox="0 0 24 24" fill="none"
-           stroke="currentColor" stroke-width="2" stroke-linecap="round">
-        <circle cx="12" cy="12" r="5"/>
-        <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
-        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-        <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
-        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-      </svg>
-      <svg id="icon-moon" width="15" height="15" viewBox="0 0 24 24" fill="none"
-           stroke="currentColor" stroke-width="2" stroke-linecap="round" style="display:none">
-        <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
-      </svg>
-    </button>
+    <ul class="nav-links" id="nav-links">${navLinks}</ul>
+    <div class="nav-right">
+      <button class="theme-btn" id="theme-toggle" aria-label="Toggle colour theme">
+        <svg id="icon-sun" width="15" height="15" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <circle cx="12" cy="12" r="5"/>
+          <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+          <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        </svg>
+        <svg id="icon-moon" width="15" height="15" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" style="display:none">
+          <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+        </svg>
+      </button>
+      <button class="nav-menu-btn" id="nav-menu-btn" aria-label="Toggle menu" aria-expanded="false">
+        <svg id="icon-menu" width="18" height="18" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <line x1="3" y1="12" x2="21" y2="12"/>
+          <line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+        <svg id="icon-close" width="18" height="18" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" style="display:none">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
   </div>
 </nav>`;
 
@@ -113,6 +128,27 @@
         theme = theme === 'dark' ? 'light' : 'dark';
         localStorage.setItem(KEY, theme);
         applyTheme(theme);
+      });
+    }
+
+    const menuBtn   = document.getElementById('nav-menu-btn');
+    const navLinksEl = document.getElementById('nav-links');
+    const iconMenu  = document.getElementById('icon-menu');
+    const iconClose = document.getElementById('icon-close');
+    if (menuBtn && navLinksEl) {
+      menuBtn.addEventListener('click', function () {
+        const open = navLinksEl.classList.toggle('nav-open');
+        menuBtn.setAttribute('aria-expanded', open);
+        iconMenu.style.display  = open ? 'none' : '';
+        iconClose.style.display = open ? ''     : 'none';
+      });
+      navLinksEl.querySelectorAll('a').forEach(function (a) {
+        a.addEventListener('click', function () {
+          navLinksEl.classList.remove('nav-open');
+          menuBtn.setAttribute('aria-expanded', 'false');
+          iconMenu.style.display  = '';
+          iconClose.style.display = 'none';
+        });
       });
     }
 
