@@ -157,6 +157,16 @@ def main():
         print(f"  Got {n} observations across {len(ffpi)} FFPI series")
     except Exception as exc:
         print(f"  Warning: FFPI fetch failed: {exc}", file=sys.stderr)
+        # Preserve previous FFPI data so a transient FAO outage doesn't wipe the charts
+        if out_path.exists():
+            try:
+                prev = json.loads(out_path.read_text())
+                for key in FFPI_COLS.values():
+                    if key in prev.get("series", {}):
+                        all_data[key] = prev["series"][key]
+                print("  Kept previous FFPI data from existing data.json", file=sys.stderr)
+            except Exception:
+                pass
 
     output = {
         "fetched": now.strftime("%Y-%m-%dT%H:%M:%SZ"),
